@@ -1,10 +1,10 @@
 // Reads tar.gz files and searches for specific regex strings
 
+use flate2::read::GzDecoder;
+use regex::Regex;
 use std::fs::File;
 use std::io::Read;
 use tar::Archive;
-use regex::Regex;
-use flate2::read::GzDecoder;
 
 fn main() {
     // Get command-line arguments
@@ -32,7 +32,7 @@ fn main() {
 
     // Print out all the filenames in the tarball.
     let mut archive_result = Archive::new(GzDecoder::new(tarfile));
-    let entries = match archive_result.entries()  {
+    let entries = match archive_result.entries() {
         Ok(entries) => entries,
         Err(e) => {
             eprintln!("Error reading entries: {}", e);
@@ -88,8 +88,4 @@ fn main() {
             println!("No match");
         }
     }
-
-
-
-
 }
