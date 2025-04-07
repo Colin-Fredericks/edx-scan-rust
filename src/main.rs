@@ -1,17 +1,25 @@
 // Reads tar.gz files and searches for specific regex strings
 
+use std::fs::File;
+use std::io::Read;
+
 use clap::Parser;
 use flate2::read::GzDecoder;
 use regex::Regex;
-use std::fs::File;
-use std::io::Read;
 use tar::{Archive, Entry};
 
 fn main() {
     // Get command-line arguments with clap
-    // Should be `cargo run (tarball) (regex pattern)`
     #[derive(Parser)]
-    #[clap(author = "Colin Fredericks", version = "0.1", about = "Reads tar.gz files and searches for regex patterns")]
+    #[clap(
+        author = "Colin Fredericks",
+        version = "0.1",
+        about = "Reads tar.gz files and searches for regex patterns",
+        long_about = concat!("This file reads in tarballs from edX ",
+            "and searches them for specific text as defined by a regex pattern. ",
+            "It includes .html, .xml, and .json files only others.",
+            "Run using `cargo run (tarball) (regex pattern)`.")
+    )]
     struct Cli {
         tar_gz_path: String,
         regex_pattern: String,
@@ -32,7 +40,7 @@ fn main() {
         }
     };
 
-    // Print out all the filenames in the tarball.
+    // Get all the filenames in the tarball.
     let mut archive_result = Archive::new(GzDecoder::new(tarfile));
     let entries = match archive_result.entries() {
         Ok(entries) => entries,
