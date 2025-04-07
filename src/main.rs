@@ -13,11 +13,7 @@ fn main() {
     #[derive(Parser)]
     #[clap(author = "Colin Fredericks", version = "0.1", about = "Reads tar.gz files and searches for regex patterns")]
     struct Cli {
-        /// Path to the tar.gz file
-        #[arg(short, long)]
         tar_gz_path: String,
-        /// Regex pattern to search for
-        #[arg(short, long)]
         regex_pattern: String,
     }
     let args = Cli::parse();
@@ -61,7 +57,7 @@ fn main() {
                 continue;
             }
         };
-        println!("Found file: {}", path.display());
+        println!("\nFound file: {}", path.display());
 
         // Read the contents of the file
         let mut contents = Vec::new();
@@ -89,7 +85,7 @@ fn main() {
             }
         };
         if regex.is_match(&contents_str) {
-            println!("Found match!");
+            println!("Found match!\n");
         } else {
             println!("No match");
         }
