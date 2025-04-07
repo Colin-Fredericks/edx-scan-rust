@@ -1,11 +1,11 @@
 // Reads tar.gz files and searches for specific regex strings
 
+use clap::Parser;
 use flate2::read::GzDecoder;
 use regex::Regex;
 use std::fs::File;
 use std::io::Read;
-use tar::Archive;
-use clap::Parser;
+use tar::{Archive, Entry};
 
 fn main() {
     // Get command-line arguments with clap
@@ -44,7 +44,7 @@ fn main() {
 
     for item in entries {
         // Error check for entry
-        let mut entry = match item {
+        let entry = match item {
             Ok(entry) => entry,
             Err(e) => {
                 eprintln!("Error reading entry: {}", e);
@@ -61,22 +61,14 @@ fn main() {
         };
         println!("\nFound file: {}", path.display());
 
-        // Read the contents of the file
-        let mut contents = Vec::new();
-        if let Err(e) = entry.read_to_end(&mut contents) {
-            eprintln!("Error reading file: {}", e);
-            continue;
-        }
-        // Convert contents to a string
-        let contents_str = match String::from_utf8(contents) {
-            Ok(string) => string,
+        // Read the file to one big string
+        let contents_str = match read_file_to_string(entry) {
+            Ok(contents_str) => contents_str,
             Err(e) => {
-                eprintln!("Error converting to string: {}", e);
+                eprintln!("Error reading file: {}", e);
                 continue;
             }
         };
-        // Print the contents
-        println!("Contents: {}", contents_str);
 
         // Compile the regex
         let regex = match Regex::new(&args.regex_pattern) {
@@ -93,4 +85,27 @@ fn main() {
             println!("No match");
         }
     }
+}
+
+fn read_file_to_string(mut entry: Entry<GzDecoder<File>>) -> Result<String, std::io::Error> {
+    // Read the contents of the file
+    let mut contents = Vec::new();
+    if let Err(e) = entry.read_to_end(&mut contents) {
+        eprintln!("Error reading file: {:?}", e);
+        return Err(e);
+    }
+    // Convert contents to a string
+    let contents_str = match String::from_utf8(contents) {
+        Ok(string) => string,
+        Err(e) => {
+            eprintln!("Error converting to string: {:?}", e);
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Failed to convert contents to string",
+            ));
+        }
+    };
+    // Print the contents
+    println!("Contents: {}", contents_str);
+    return Ok(contents_str);
 }
