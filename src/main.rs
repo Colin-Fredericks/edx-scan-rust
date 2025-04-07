@@ -5,23 +5,29 @@ use regex::Regex;
 use std::fs::File;
 use std::io::Read;
 use tar::Archive;
+use clap::Parser;
 
 fn main() {
-    // Get command-line arguments
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() < 3 {
-        eprintln!("Usage: {} <tar.gz file> <regex pattern>", args[0]);
-        std::process::exit(1);
+    // Get command-line arguments with clap
+    // Should be `cargo run (tarball) (regex pattern)`
+    #[derive(Parser)]
+    #[clap(author = "Colin Fredericks", version = "0.1", about = "Reads tar.gz files and searches for regex patterns")]
+    struct Cli {
+        /// Path to the tar.gz file
+        #[arg(short, long)]
+        tar_gz_path: String,
+        /// Regex pattern to search for
+        #[arg(short, long)]
+        regex_pattern: String,
     }
-    let tar_gz_path = &args[1];
-    let regex_pattern = &args[2];
+    let args = Cli::parse();
 
     // Print them out to test
-    println!("Tar.gz file: {}", tar_gz_path);
-    println!("Regex pattern: {}", regex_pattern);
+    println!("Tar.gz file: {}", args.tar_gz_path);
+    println!("Regex pattern: {}", args.regex_pattern);
 
     // Open the tar.gz file
-    let tarfile_result = File::open(tar_gz_path);
+    let tarfile_result = File::open(args.tar_gz_path);
     let tarfile = match tarfile_result {
         Ok(file) => file,
         Err(e) => {
@@ -75,7 +81,7 @@ fn main() {
         println!("Contents: {}", contents_str);
 
         // Search for the regex pattern
-        let regex = match Regex::new(regex_pattern) {
+        let regex = match Regex::new(&args.regex_pattern) {
             Ok(regex) => regex,
             Err(e) => {
                 eprintln!("Error compiling regex: {}", e);
