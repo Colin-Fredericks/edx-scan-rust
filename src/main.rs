@@ -43,6 +43,7 @@ fn main() {
     };
 
     for item in entries {
+        // Error check for entry
         let mut entry = match item {
             Ok(entry) => entry,
             Err(e) => {
@@ -50,6 +51,7 @@ fn main() {
                 continue;
             }
         };
+        // Error check for getting the path of the entry
         let path = match entry.path() {
             Ok(path) => path,
             Err(e) => {
@@ -76,7 +78,7 @@ fn main() {
         // Print the contents
         println!("Contents: {}", contents_str);
 
-        // Search for the regex pattern
+        // Compile the regex
         let regex = match Regex::new(&args.regex_pattern) {
             Ok(regex) => regex,
             Err(e) => {
@@ -84,6 +86,7 @@ fn main() {
                 continue;
             }
         };
+        // Search for the regex pattern
         if regex.is_match(&contents_str) {
             println!("Found match!\n");
         } else {
