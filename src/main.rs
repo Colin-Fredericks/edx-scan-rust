@@ -18,20 +18,22 @@ fn main() {
         long_about = concat!("This file reads in tarballs from edX ",
             "and searches them for specific text as defined by a regex pattern. ",
             "It includes .html, .xml, and .json files only others.",
-            "Run using `cargo run (tarball) (regex pattern)`.")
+            "Run using `cargo run (regex pattern) (tarball)`.")
     )]
-    struct Cli {
-        tar_gz_path: String,
+    struct CommandLineArgs {
         regex_pattern: String,
+        // Handle any number of files, for wildcard purposes
+        tar_gz_path: Vec<String>,
     }
-    let args = Cli::parse();
+    let args = CommandLineArgs::parse();
 
     // Print them out to test
-    println!("Tar.gz file: {}", args.tar_gz_path);
     println!("Regex pattern: {}", args.regex_pattern);
+    println!("Tar.gz file(s): {:?}", args.tar_gz_path);
 
     // Open the tar.gz file
-    let tarfile_result = File::open(args.tar_gz_path);
+    // TODO: Handle multiple files
+    let tarfile_result = File::open(&args.tar_gz_path[0]);
     let tarfile = match tarfile_result {
         Ok(file) => file,
         Err(e) => {
@@ -93,6 +95,7 @@ fn main() {
             println!("No match");
         }
     }
+
 }
 
 fn read_file_to_string(mut entry: Entry<GzDecoder<File>>) -> Result<String, std::io::Error> {
