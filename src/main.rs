@@ -31,9 +31,17 @@ fn main() {
     println!("Regex pattern: {}", args.regex_pattern);
     println!("Tar.gz file(s): {:?}", args.tar_gz_path);
 
-    // Open the tar.gz file
     // TODO: Handle multiple files
-    let tarfile_result = File::open(&args.tar_gz_path[0]);
+    for path in args.tar_gz_path {
+        search_in_file(path, &args.regex_pattern);
+    }
+
+
+}
+
+fn search_in_file(path: String, regex_pattern: &String) {
+    // Open the tar.gz file
+    let tarfile_result = File::open(&path);
     let tarfile = match tarfile_result {
         Ok(file) => file,
         Err(e) => {
@@ -51,7 +59,9 @@ fn main() {
             std::process::exit(1);
         }
     };
+    println!("\nOpened tarball: {}", &path);
 
+    // Iterate through all files in the tarball
     for item in entries {
         // Error check for entry
         let entry = match item {
@@ -69,7 +79,11 @@ fn main() {
                 continue;
             }
         };
-        println!("\nFound file: {}", path.display());
+        // If this is a directory, don't bother searching it.
+        if path.is_dir() {
+            continue;
+        }
+        println!("Found file: {}", path.display());
 
         // Read the file to one big string
         let contents_str = match read_file_to_string(entry) {
@@ -81,7 +95,7 @@ fn main() {
         };
 
         // Compile the regex
-        let regex = match Regex::new(&args.regex_pattern) {
+        let regex = match Regex::new(regex_pattern) {
             Ok(regex) => regex,
             Err(e) => {
                 eprintln!("Error compiling regex: {}", e);
@@ -90,12 +104,11 @@ fn main() {
         };
         // Search for the regex pattern
         if regex.is_match(&contents_str) {
-            println!("Found match!\n");
+            println!("  Found match!");
         } else {
-            println!("No match");
+            // println!("No match");
         }
     }
-
 }
 
 fn read_file_to_string(mut entry: Entry<GzDecoder<File>>) -> Result<String, std::io::Error> {
@@ -117,6 +130,6 @@ fn read_file_to_string(mut entry: Entry<GzDecoder<File>>) -> Result<String, std:
         }
     };
     // Print the contents
-    println!("Contents: {}", contents_str);
+    // println!("Contents: {}", contents_str);
     return Ok(contents_str);
 }
