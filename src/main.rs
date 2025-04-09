@@ -79,8 +79,8 @@ fn search_in_file(path: String, regex_pattern: &String) {
                 continue;
             }
         };
-        // If this is a directory, don't bother searching it.
-        if path.is_dir() {
+        // If this is a directory within the tarball, don't bother searching it.
+        if entry.header().entry_type().is_dir() {
             continue;
         }
         println!("Found file: {}", path.display());
