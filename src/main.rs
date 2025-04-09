@@ -8,6 +8,8 @@ use flate2::read::GzDecoder;
 use regex::Regex;
 use tar::{Archive, Entry};
 
+const FILE_TYPES: [&str; 3] = [".html", ".xml", ".json"];
+
 fn main() {
     // Get command-line arguments with clap
     #[derive(Parser)]
@@ -23,6 +25,7 @@ fn main() {
     struct CommandLineArgs {
         regex_pattern: String,
         // Handle any number of files, for wildcard purposes
+        // TODO: Add in glob so we can handle wildcards on Windows
         tar_gz_path: Vec<String>,
     }
     let args = CommandLineArgs::parse();
@@ -31,15 +34,18 @@ fn main() {
     println!("Regex pattern: {}", args.regex_pattern);
     println!("Tar.gz file(s): {:?}", args.tar_gz_path);
 
-    // TODO: Handle multiple files
     for path in args.tar_gz_path {
-        search_in_file(path, &args.regex_pattern);
+        search_in_tarball(&path, &args.regex_pattern);
     }
-
-
 }
 
-fn search_in_file(path: String, regex_pattern: &String) {
+/// Searches the files inside a tarball for a regex pattern.
+/// Limits the search to the files in FILE_TYPES.
+///
+/// # Arguments
+/// * **path**: The path to the tarball.
+/// * **regex_pattern**: The regex pattern to search for.
+fn search_in_tarball(path: &String, regex_pattern: &String) {
     // Open the tar.gz file
     let tarfile_result = File::open(&path);
     let tarfile = match tarfile_result {
@@ -71,6 +77,7 @@ fn search_in_file(path: String, regex_pattern: &String) {
                 continue;
             }
         };
+
         // Error check for getting the path of the entry
         let path = match entry.path() {
             Ok(path) => path,
@@ -83,6 +90,13 @@ fn search_in_file(path: String, regex_pattern: &String) {
         if entry.header().entry_type().is_dir() {
             continue;
         }
+        // Get the file extension
+        let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("");
+        // Check if the file is one of the types we want
+        if !FILE_TYPES.contains(&extension) {
+            continue;
+        }
+
         println!("Found file: {}", path.display());
 
         // Read the file to one big string
@@ -102,6 +116,7 @@ fn search_in_file(path: String, regex_pattern: &String) {
                 continue;
             }
         };
+
         // Search for the regex pattern
         if regex.is_match(&contents_str) {
             println!("  Found match!");
@@ -111,6 +126,10 @@ fn search_in_file(path: String, regex_pattern: &String) {
     }
 }
 
+/// Reads a file from a tarball and returns its contents as a string.
+///
+/// # Arguments
+/// * **entry**: The entry to read from the tarball.
 fn read_file_to_string(mut entry: Entry<GzDecoder<File>>) -> Result<String, std::io::Error> {
     // Read the contents of the file
     let mut contents = Vec::new();
