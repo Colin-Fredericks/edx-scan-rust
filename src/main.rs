@@ -8,7 +8,7 @@ use flate2::read::GzDecoder;
 use regex::Regex;
 use tar::{Archive, Entry};
 
-const FILE_TYPES: [&str; 3] = [".html", ".xml", ".json"];
+const FILE_TYPES: [&str; 3] = ["html", "xml", "json"];
 
 fn main() {
     // Get command-line arguments with clap
