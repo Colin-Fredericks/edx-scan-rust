@@ -90,14 +90,15 @@ fn search_in_tarball(path: &String, regex_pattern: &String) {
         if entry.header().entry_type().is_dir() {
             continue;
         }
-        // Get the file extension
+        // Get the filename and extension
+        let filename = path.display().to_string();
         let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("");
         // Check if the file is one of the types we want
         if !FILE_TYPES.contains(&extension) {
             continue;
         }
 
-        println!("Found file: {}", path.display());
+        // println!("Found file: {}", path.display());
 
         // Read the file to one big string
         let contents_str = match read_file_to_string(entry) {
@@ -119,7 +120,7 @@ fn search_in_tarball(path: &String, regex_pattern: &String) {
 
         // Search for the regex pattern
         if regex.is_match(&contents_str) {
-            println!("  Found match!");
+            println!("  Found match in file: {}", filename);
         } else {
             // println!("No match");
         }
