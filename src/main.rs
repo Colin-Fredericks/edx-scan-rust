@@ -142,7 +142,7 @@ fn read_file_to_string(mut entry: Entry<GzDecoder<File>>) -> Result<String, std:
     let contents_str = match String::from_utf8(contents) {
         Ok(string) => string,
         Err(e) => {
-            eprintln!("Error converting to string: {:?}", e);
+            eprintln!("Error converting {:?} to string (possibly not UTF-8): {}", entry.path(), e);
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 "Failed to convert contents to string",
