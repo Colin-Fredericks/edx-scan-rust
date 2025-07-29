@@ -19,7 +19,7 @@ fn main() {
         about = "Reads tar.gz files and searches for regex patterns",
         long_about = concat!("This file reads in tarballs from edX ",
             "and searches them for specific text as defined by a regex pattern. ",
-            "It includes .html, .xml, and .json files only others.",
+            "It includes .html, .xml, and .json files, skipping others.",
             "Run using `cargo run (regex pattern) (tarball)`.")
     )]
     struct CommandLineArgs {
