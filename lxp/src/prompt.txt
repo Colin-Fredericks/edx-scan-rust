@@ -1,0 +1,23 @@
+I'd like you to generate some code for me in Rust.
+
+I have a large number of .tar.gz files, which contain JSON files (and other things). I need to search through all the json files in all the tarballs for a regular expression, and report which files contain it and where.
+
+The process should not involve extracting any files to drive. They should be handled in memory; the tarballs should be read directly without extracting the files to a folder.
+
+The json files have a known structure: an array of objects. Some of the data included is:
+
+{
+  "type": string,
+  "activity_id": number,
+  "parent_id": number,
+  "data":{
+    "title": string,
+    "description": string
+  }
+}
+
+There will also be other keys. None of these keys are guaranteed to exist; check for each of them as report an empty string if it's undefined.
+
+For the regex parse, treat the JSON file as a string so that both keys and values are searched. For reporting the details of the object, parse the JSON and provide all of the keys listed above if they exist, and "" if they don't. You will probably have to match up line numbers from the text search with line numbers in the JSON file to get the right information for the object where the regex match is found. A csv might be the right format for reporting the data.
+
+Thank you!
