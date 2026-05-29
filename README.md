@@ -19,6 +19,7 @@ Clone the repo and `cd` into it.
 This currently works as a command-line utility, returning just filenames and pathnames and printing them to the terminal. Potential expansions:
 
 - Print to a CSV
+  - There's the beginning of this but it needs better.
 - Include file locations and names
 - Include extra context - lines before and after the one that was matched.
 - Nicer interface than command line
