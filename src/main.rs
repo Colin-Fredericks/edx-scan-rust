@@ -28,7 +28,8 @@ fn main() {
         // Handle any number of files, for wildcard purposes
         // TODO: Add in glob so we can handle wildcards on Windows
         tar_gz_path: Vec<String>,
-        // Options: write to file or not
+        // Options: write to file or not. Default to false.
+        #[clap(short, long, action)]
         write_to_file: bool,
     }
     let args = CommandLineArgs::parse();
@@ -39,7 +40,6 @@ fn main() {
 
     for path in args.tar_gz_path {
         search_in_tarball(&path, &args.regex_pattern, args.write_to_file);
-
     }
 }
 
@@ -136,7 +136,7 @@ fn search_in_tarball(path: &String, regex_pattern: &String, write_to_file: bool)
     // Write the list of matches to a CSV file
     if write_to_file {
         let output_file = format!("matches_{}.csv", path);
-        if let Err(e) = write_list_to_file(match_list, &output_file) {
+        if let Err(e) = write_list_to_file(path.clone(), match_list, &output_file) {
             eprintln!("Error writing to file: {}", e);
         } else {
             println!("Wrote matches to file: {}", output_file);
@@ -176,12 +176,17 @@ fn read_file_to_string(mut entry: Entry<GzDecoder<File>>) -> Result<String, std:
 }
 
 fn write_list_to_file(
+    course_name: String,
     match_list: Vec<String>,
     output_file: &str,
 ) -> Result<(), std::io::Error> {
+    // CSV headers: course name, filename
+    let headers = ["course_name", "filename"];
+
     let mut wtr = Writer::from_path(output_file)?;
+    wtr.write_record(&headers)?;
     for item in match_list {
-        wtr.write_record(&[item])?;
+        wtr.write_record(&[&course_name, &item])?;
     }
     wtr.flush()?;
     return Ok(());
