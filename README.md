@@ -11,7 +11,7 @@ Clone the repo and `cd` into it.
 
 ```bash
 > cargo build
-> cargo run test/zippy.tgz "regex_pattern"
+> cargo run "regex_pattern" test/zippy.tgz
 ```
 
 ## Nice-to-have
