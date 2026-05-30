@@ -94,7 +94,6 @@ fn search_in_tarball(path: &String, regex_pattern: &String, write_to_file: bool)
         };
         // If this is a directory within the tarball, don't bother searching it.
         if entry.header().entry_type().is_dir() {
-            println!("test");
             continue;
         }
         // Get the filename and extension
@@ -104,7 +103,6 @@ fn search_in_tarball(path: &String, regex_pattern: &String, write_to_file: bool)
         if !FILE_TYPES.contains(&extension) {
             continue;
         }
-        println!("Found file: {}", filename);
 
         // println!("Found file: {}", path.display());
 
