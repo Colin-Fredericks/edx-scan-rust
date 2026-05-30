@@ -4,7 +4,6 @@ use std::fs::File;
 use std::io::Read;
 
 use clap::Parser;
-use csv::Writer;
 use flate2::read::GzDecoder;
 use regex::Regex;
 use tar::{Archive, Entry};
@@ -17,10 +16,10 @@ fn main() {
     #[clap(
         author = "Colin Fredericks",
         version = "0.1",
-        about = "Reads tar.gz files and searches for regex patterns ",
+        about = "Reads tar.gz files and searches for regex patterns",
         long_about = concat!("This file reads in tarballs from edX ",
             "and searches them for specific text as defined by a regex pattern. ",
-            "It includes .html, .xml, and .json files, skipping others. ",
+            "It includes .html, .xml, and .json files, skipping others.",
             "Run using `cargo run (regex pattern) (tarball)`.")
     )]
     struct CommandLineArgs {
@@ -28,9 +27,6 @@ fn main() {
         // Handle any number of files, for wildcard purposes
         // TODO: Add in glob so we can handle wildcards on Windows
         tar_gz_path: Vec<String>,
-        // Options: write to file or not. Default to false.
-        #[clap(short, long, action)]
-        write_to_file: bool,
     }
     let args = CommandLineArgs::parse();
 
@@ -39,7 +35,7 @@ fn main() {
     println!("Tar.gz file(s): {:?}", args.tar_gz_path);
 
     for path in args.tar_gz_path {
-        search_in_tarball(&path, &args.regex_pattern, args.write_to_file);
+        search_in_tarball(&path, &args.regex_pattern);
     }
 }
 
@@ -49,8 +45,7 @@ fn main() {
 /// # Arguments
 /// * **path**: The path to the tarball.
 /// * **regex_pattern**: The regex pattern to search for.
-/// * **write_to_file**: Whether to write the matches to a file.
-fn search_in_tarball(path: &String, regex_pattern: &String, write_to_file: bool) {
+fn search_in_tarball(path: &String, regex_pattern: &String) {
     // Open the tar.gz file
     let tarfile_result = File::open(&path);
     let tarfile = match tarfile_result {
@@ -73,7 +68,6 @@ fn search_in_tarball(path: &String, regex_pattern: &String, write_to_file: bool)
     println!("\nOpened tarball: {}", &path);
 
     // Iterate through all files in the tarball
-    let mut match_list: Vec<String> = Vec::new();
     for item in entries {
         // Error check for entry
         let entry = match item {
@@ -119,7 +113,7 @@ fn search_in_tarball(path: &String, regex_pattern: &String, write_to_file: bool)
         let regex = match Regex::new(regex_pattern) {
             Ok(regex) => regex,
             Err(e) => {
-                eprintln!("Error in regular expression: {}", e);
+                eprintln!("Error compiling regex: {}", e);
                 continue;
             }
         };
@@ -127,19 +121,8 @@ fn search_in_tarball(path: &String, regex_pattern: &String, write_to_file: bool)
         // Search for the regex pattern
         if regex.is_match(&contents_str) {
             println!("  Found match in file: {}", filename);
-            match_list.push(filename);
         } else {
             // println!("No match");
-        }
-    }
-
-    // Write the list of matches to a CSV file
-    if write_to_file {
-        let output_file = format!("matches_{}.csv", path);
-        if let Err(e) = write_list_to_file(path.clone(), match_list, &output_file) {
-            eprintln!("Error writing to file: {}", e);
-        } else {
-            println!("Wrote matches to file: {}", output_file);
         }
     }
 }
@@ -159,11 +142,7 @@ fn read_file_to_string(mut entry: Entry<GzDecoder<File>>) -> Result<String, std:
     let contents_str = match String::from_utf8(contents) {
         Ok(string) => string,
         Err(e) => {
-            eprintln!(
-                "Error converting {:?} to string (possibly not UTF-8): {}",
-                entry.path(),
-                e
-            );
+            eprintln!("Error converting {:?} to string (possibly not UTF-8): {}", entry.path(), e);
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 "Failed to convert contents to string",
@@ -173,21 +152,4 @@ fn read_file_to_string(mut entry: Entry<GzDecoder<File>>) -> Result<String, std:
     // Print the contents
     // println!("Contents: {}", contents_str);
     return Ok(contents_str);
-}
-
-fn write_list_to_file(
-    course_name: String,
-    match_list: Vec<String>,
-    output_file: &str,
-) -> Result<(), std::io::Error> {
-    // CSV headers: course name, filename
-    let headers = ["course_name", "filename"];
-
-    let mut wtr = Writer::from_path(output_file)?;
-    wtr.write_record(&headers)?;
-    for item in match_list {
-        wtr.write_record(&[&course_name, &item])?;
-    }
-    wtr.flush()?;
-    return Ok(());
 }
